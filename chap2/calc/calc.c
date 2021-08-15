@@ -370,6 +370,36 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
   return r;      
 }
 
+void show_ring(Ring r)
+{
+  char **v;
+  int n,i;
+  char *ordtype,*maxexp;
+
+  switch ( r->chr ) {
+    case 0: fprintf(stderr,"ring=Z["); break;
+    case 1: fprintf(stderr,"ring=Q["); break;
+    default: fprintf(stderr,"ring=(Z/%dZ)[",(int)r->chr); break;
+  }
+  v = r->vname; n = r->nv;
+  for ( i = 0; i < n; i++ ) {
+    fprintf(stderr,"%s",v[i]);
+    if ( i < n-1 ) fprintf(stderr,",");
+  }
+  if ( r->graded )
+    ordtype = r->rev?"grevlex":"glex";
+  else
+    ordtype = "lex";
+  switch ( r->bpe ) {
+    case 1: maxexp = "127"; break;
+    case 2: maxexp = "32767"; break;
+    case 4: maxexp = "2147483647"; break;
+    case 8: maxexp = "9223372036854775807"; break;
+    default: maxexp = "?"; break;
+  }
+  fprintf(stderr,"],ordtype=%s,max exponent=%s\n",ordtype,maxexp);
+}
+
 FILE *Input;
 
 int skipspace() {
@@ -461,6 +491,22 @@ Node get_vars()
   }
 }
 
+// create [x,y,z]
+Node default_vars()
+{
+  char xyz[] = "xyz";
+  int len = strlen(xyz),i;
+  Node top,cur;
+  char *s;
+
+  for ( top = 0, i = len-1; i >= 0; i-- ) {
+    s = (char *)GC_malloc(2);
+    s[0] = xyz[i]; s[1] = 0;
+    CONSNODE(top,cur,s);
+  }
+  return top;
+}
+
 void print_node(Node p)
 {
   Node q;
@@ -475,37 +521,35 @@ void *gc_realloc(void *p,size_t osize,size_t nsize)
   return (void *)GC_realloc(p,nsize);
 }
 
-// input file format :
-// chr ordid bpe
-// [x y z ...]
-// p1,p2,...,pn;
+// ringdef file format :
+// chr ordid bpe [x y z ...]
 
 int main(int argc,char **argv)
 {
   Node vars,out;
   int chr,ordid,bpe,alg;
-  
-  if ( argc < 2 ) {
-    fprintf(stderr,"usage : %s file [infile]\n",argv[0]);
-    exit(0);
-  }
-  Input = fopen(argv[1],"r"); 
-  if ( Input == 0 ) {
-    fprintf(stderr,"%s not found\n",argv[1]);
-    exit(0);
-  }
+
   GC_init();
   mp_set_memory_functions(
     (void *(*)(size_t))GC_malloc,
     (void *(*)(void *,size_t,size_t))gc_realloc,
     (void (*)(void *,size_t))GC_free);
-  fscanf(Input,"%d %d %d\n",&chr,&ordid,&bpe);
-  vars = get_vars();
+  if ( argc == 1 ) {
+    vars = default_vars();
+    chr = 1; ordid = 0; bpe = 4;
+  } else {
+    Input = fopen(argv[1],"r"); 
+    if ( Input == 0 ) {
+      fprintf(stderr,"ring definition file %s not found\n",argv[1]);
+      exit(0);
+    }
+    fscanf(Input,"%d %d %d\n",&chr,&ordid,&bpe);
+    vars = get_vars();
+    fclose(Input);
+  }
   CurrentRing = create_ring(vars,ordid,bpe,chr);
-  if ( argc == 3 )
-    Input = fopen(argv[2],"r"); 
-  else
-    Input = stdin;
+  show_ring(CurrentRing);
+  Input = stdin;
   while ( 1 ) {
     yyparse();
     print_poly(result); printf("\n");
