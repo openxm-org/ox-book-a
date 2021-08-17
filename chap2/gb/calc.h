@@ -88,7 +88,7 @@ int yyparse(),yylex(),skipspace();
 void error(char *);
 
 Poly add_poly(Poly,Poly), sub_poly(Poly,Poly), neg_poly(Poly);
-Poly mul_poly(Poly,Poly), power_poly(Poly,char *);
+Poly mul_poly(Poly,Poly), divc_poly(Poly,Poly), power_poly(Poly,char *);
 Poly dup_poly(Poly), mul1_poly(Poly,Poly);
 void free_poly(Poly), print_poly(Poly);
 LONG tdeg_poly(Poly p);

@@ -85,6 +85,8 @@ expr : '+' expr   %prec PLUS
   { $$ = sub_poly($1,$3); }
      | expr '*' expr
   { $$ = mul_poly($1,$3); }
+     | expr '/' expr
+  { $$ = divc_poly($1,$3); }
      | expr '^' INT
   { $$ = power_poly($1,$3); }
      | INT

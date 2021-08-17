@@ -568,6 +568,30 @@ Poly mul_poly(Poly p1,Poly p2)
   return r;
 }
 
+// p2 should be a constant
+Poly divc_poly(Poly p1,Poly p2)
+{
+  struct poly root;
+  Poly p,q,r,s;
+  Coef c,c1;
+  Monomial m;
+
+  if ( p2 == 0 )
+    error("divc_poly : division by 0");
+  if ( p2->m->td != 0 )
+    error("divc_poly : division by a non constant poly");
+  if ( CurrentRing->divc == 0 )
+    error("divc_poly : division is not allowed");
+  r = &root;
+  c = p2->c;
+  for ( q = p1; q != 0; q = q->next ) {
+     c1 = CurrentRing->divc(q->c,c); 
+     APPENDPOLY(r,s,c1,p1->m);
+  }
+  r->next = 0;
+  return root.next;
+}
+
 Poly power_poly(Poly p,char *q)
 {
   Poly r,pi;
