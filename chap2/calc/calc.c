@@ -443,29 +443,24 @@ int skipspace() {
 void print_monomial(Monomial m)
 {
   ULONG mask,e;
-  int nv,bpe,i,shift,bpos,wpos;
+  int nv,bpe,rev,i,shift,bpos,wpos,first=1;
+  char **v;
 
-  nv = CurrentRing->nv;
-  bpe = CurrentRing->bpe;
+  nv = CurrentRing->nv; bpe = CurrentRing->bpe;
+  v = CurrentRing->vname; rev = CurrentRing->rev;
   if ( bpe == 8 ) mask = ~0;
   else mask = ((1UL)<<(bpe*8))-1;
-  printf("<<");
-  if ( CurrentRing->rev ) {
-    for ( i = nv-1; i >= 0; i-- ) {
-      bpos = i*bpe; wpos = bpos/8; shift = 8-bpe-(bpos%8);
-      e = (m->exp[wpos] >> (shift*8))&mask;
-      printf("%lld",e);
-      if ( i != 0 ) putchar(',');
-    }
-  } else {
-    for ( i = 0; i < nv; i++ ) {
-      bpos = i*bpe; wpos = bpos/8; shift = 8-bpe-(bpos%8);
-      e = (m->exp[wpos] >> (shift*8))&mask;
-      printf("%lld",e);
-      if ( i != nv-1 ) putchar(',');
+  for ( i = 0; i < nv; i++ ) {
+    bpos = rev ? (nv-i-1)*bpe : i*bpe; 
+    wpos = bpos/8; shift = 8-bpe-(bpos%8);
+    e = (m->exp[wpos] >> (shift*8))&mask;
+    if ( e != 0 ) {
+      if ( first ) first = 0;
+      else printf("*");
+      printf("%s",v[i]);
+      if ( e > 1 ) printf("^%lld",e);
     }
   }
-  printf(">>");
 }
 
 void print_poly(Poly p)
@@ -473,10 +468,10 @@ void print_poly(Poly p)
   Poly q;
 
   for ( q = p; q != 0; q = q->next ) {
-    putchar('+');
-    CurrentRing->printc(q->c);
-    putchar('*');
-    print_monomial(q->m);
+    printf("+("); CurrentRing->printc(q->c); printf(")");
+    if ( q->m->td != 0 ) {
+      putchar('*'); print_monomial(q->m);
+    }
   }
 }
 

@@ -6,7 +6,6 @@ FILE *Input;
 struct parray gbarray;
 extern Indata result;
 int criB,criF,criM,criD;
-clock_t t_intred;
 
 void *GC_calloc_atomic(size_t n)
 {
@@ -572,9 +571,8 @@ Poly mul_poly(Poly p1,Poly p2)
 Poly divc_poly(Poly p1,Poly p2)
 {
   struct poly root;
-  Poly p,q,r,s;
+  Poly q,r,s;
   Coef c,c1;
-  Monomial m;
 
   if ( p2 == 0 )
     error("divc_poly : division by 0");
@@ -1131,29 +1129,36 @@ void print_lmat(LONG **mat,int row,int col)
 void print_monomial(Monomial m)
 {
   ULONG mask,e;
-  int nv,bpe,i,shift,bpos,wpos;
+  int nv,bpe,rev,i,shift,bpos,wpos,first=1;
+  char **v;
 
-  nv = CurrentRing->nv;
-  bpe = CurrentRing->bpe;
+  nv = CurrentRing->nv; bpe = CurrentRing->bpe;
+  v = CurrentRing->vname; rev = CurrentRing->rev;
   if ( bpe == 8 ) mask = ~0;
   else mask = ((1UL)<<(bpe*8))-1;
-  printf("<<");
-  if ( CurrentRing->rev ) {
-    for ( i = nv-1; i >= 0; i-- ) {
-      bpos = i*bpe; wpos = bpos/8; shift = 8-bpe-(bpos%8);
-      e = (m->exp[wpos] >> (shift*8))&mask;
-      printf("%lld",e);
-      if ( i != 0 ) putchar(',');
-    }
-  } else {
-    for ( i = 0; i < nv; i++ ) {
-      bpos = i*bpe; wpos = bpos/8; shift = 8-bpe-(bpos%8);
-      e = (m->exp[wpos] >> (shift*8))&mask;
-      printf("%lld",e);
-      if ( i != nv-1 ) putchar(',');
+  for ( i = 0; i < nv; i++ ) {
+    bpos = rev ? (nv-i-1)*bpe : i*bpe; 
+    wpos = bpos/8; shift = 8-bpe-(bpos%8);
+    e = (m->exp[wpos] >> (shift*8))&mask;
+    if ( e != 0 ) {
+      if ( first ) first = 0;
+      else printf("*");
+      printf("%s",v[i]);
+      if ( e > 1 ) printf("^%lld",e);
     }
   }
-  printf(">>");
+}
+
+void print_poly(Poly p)
+{
+  Poly q;
+
+  for ( q = p; q != 0; q = q->next ) {
+    printf("+("); CurrentRing->printc(q->c); printf(")");
+    if ( q->m->td != 0 ) {
+      putchar('*'); print_monomial(q->m);
+    }
+  }
 }
 
 void print_sparse_vector(Poly p)
@@ -1166,18 +1171,6 @@ void print_sparse_vector(Poly p)
     printf("*(%lld)",(LONG)q->m);
   }
   printf("\n");
-}
-
-void print_poly(Poly p)
-{
-  Poly q;
-
-  for ( q = p; q != 0; q = q->next ) {
-    putchar('+');
-    CurrentRing->printc(q->c);
-    putchar('*');
-    print_monomial(q->m);
-  }
 }
 
 void print_mnode(Node p)
@@ -1281,7 +1274,6 @@ void add_to_gbarray(Sugarp s,int f4)
 
     a.body = &s;
     a.max = a.len = a.ishomo = 1;
-    t0 = clock();
     for ( i = 0; i <= len; i++ )
       if ( gbarray.body[i] != 0 && gbarray.body[i]->p->m->td >= s->p->m->td ) {
         if ( CurrentRing->chr != 0 ) 
@@ -1292,7 +1284,6 @@ void add_to_gbarray(Sugarp s,int f4)
           gbarray.body[i] = ss;
         }
       }
-      t_intred += clock()-t0;
   }
   gbarray.body[gbarray.len] = s;
   gbarray.len++;
@@ -1402,7 +1393,7 @@ Node improved_buchbgerger(Node b)
   for ( gblist = 0, i = gbarray.len-1; i >= 0; i-- ) {
     CONSNODE(gblist,t,gbarray.body[i]);
   }
-  printf("F=%d,M=%d,B=%d,D=%d\n",criF,criM,criB,criD);
+  printf("\nF=%d,M=%d,B=%d,D=%d\n",criF,criM,criB,criD);
   return gblist;
 }
 
@@ -2144,7 +2135,6 @@ int main(int argc,char **argv)
     yyparse();
     if ( result == 0 ); // ring definition
     else {
-      t_intred = 0;
       switch ( result->alg ) {
         case ALG_BUCH:
           if ( CurrentRing->chr == 0 )
@@ -2162,11 +2152,11 @@ int main(int argc,char **argv)
       }
       outm = minimalize(out);
       outr = interreduce(outm);
-      fprintf(stderr,"intred=%.3fsec\n",(double)t_intred/(double)CLOCKS_PER_SEC);
-      fprintf(stderr,"symb=%.3fsec rref=%.3fsec add=%.3fsec\n",
-        (double)Tsymb/(double)CLOCKS_PER_SEC,
-        (double)Trref/(double)CLOCKS_PER_SEC,
-        (double)Tadd/(double)CLOCKS_PER_SEC);
+      if ( result->alg == ALG_F4 )
+        fprintf(stderr,"symb=%.3fsec rref=%.3fsec add=%.3fsec\n",
+          (double)Tsymb/(double)CLOCKS_PER_SEC,
+          (double)Trref/(double)CLOCKS_PER_SEC,
+          (double)Tadd/(double)CLOCKS_PER_SEC);
       for ( t = outr; t != 0; t = t->next ) {
         print_poly(((Sugarp)t->body)->p); printf("\n");
       }
