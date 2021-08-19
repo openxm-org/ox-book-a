@@ -1,0 +1,11 @@
+usage:
+	@echo "make all, make clean"
+all: obj1-lib
+
+obj0-lib.o: obj0-lib.c obj0-lib.h
+	cc -c obj0-lib.c
+obj1-lib: obj1-lib.c obj0-lib.o
+	cc -o obj1-lib obj1-lib.c obj0-lib.o
+
+clean:
+	-rm *.o obj1-lib *~
