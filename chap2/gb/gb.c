@@ -1242,6 +1242,7 @@ void init_gbarray(Node base)
     if ( !ishomo_poly((Poly)b->body) ) ishomo = 0;
     NEWSUGARP(s); 
     s->p = (Poly)b->body;
+    s->sugar = tdeg_poly(s->p);
     s->p = monic_poly(s->p);
     gbarray.body[i] = s;
   }
