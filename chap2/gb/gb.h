@@ -40,6 +40,7 @@ Node insert_spair(Node l,Spair s);
 Node poly_to_mnode(Poly p);
 Sugarp spoly(Spair sp);
 Sugarp rem_poly_sugar(Sugarp,Parray);
+Poly monic_poly(Poly p);
 
 LONG get_prime64(int ind);
 int bitsize_z(Coef z);

@@ -1242,16 +1242,21 @@ void init_gbarray(Node base)
     if ( !ishomo_poly((Poly)b->body) ) ishomo = 0;
     NEWSUGARP(s); 
     s->p = (Poly)b->body;
-    if ( CurrentRing->chr == 0 ) {
-      s->p = removecont_poly_z(s->p);
-    } else if ( CurrentRing->chr == 1 ) {
-    } else {
-      s->p = mulc_poly(inv_ff(s->p->c),s->p);
-    }
-    s->sugar = tdeg_poly(s->p);
+    s->p = monic_poly(s->p);
     gbarray.body[i] = s;
   }
   gbarray.ishomo = ishomo;
+}
+
+// remove the content if the coefficient ring is Z
+Poly monic_poly(Poly p)
+{
+  if ( CurrentRing->chr == 0 )
+    return removecont_poly_z(p);
+  else if ( CurrentRing->chr == 1 )
+    return mulc_poly(div_q(CurrentRing->one,p->c),p);
+  else
+    return mulc_poly(inv_ff(p->c),p);
 }
 
 void add_to_gbarray(Sugarp s,int f4)
@@ -1261,12 +1266,7 @@ void add_to_gbarray(Sugarp s,int f4)
     gbarray.max *= 2;
     gbarray.body = (Sugarp *)GC_realloc(gbarray.body,gbarray.max*sizeof(Sugarp));
   }
-  if ( CurrentRing->chr == 0 ) {
-    s->p = removecont_poly_z(s->p);
-  } else if ( CurrentRing->chr == 1 ) {
-  } else {
-    s->p = mulc_poly(inv_ff(s->p->c),s->p);
-  }
+  s->p = monic_poly(s->p);
   if ( f4 == 0 && gbarray.ishomo != 0 ) {
     struct parray a;
     Sugarp ss;
@@ -2100,6 +2100,7 @@ Node interreduce(Node n)
       a[i] = rem_poly_sugar_z(a[i],&pa);
     else
       a[i] = rem_poly_sugar(a[i],&pa);
+    a[i]->p = monic_poly(a[i]->p);
   }
   r = 0;
   for ( i = len-1; i >= 0; i-- ) {
