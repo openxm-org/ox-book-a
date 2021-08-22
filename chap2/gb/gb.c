@@ -424,7 +424,7 @@ Monomial lcm_monomial(Monomial m1,Monomial m2)
   nv = CurrentRing->nv;
   bpe = CurrentRing->bpe;
   if ( bpe == 8 ) mask = ~0;
-  else mask = ((1UL)<<(bpe*8))-1;
+  else mask = (((ULONG)1)<<(bpe*8))-1;
   NEWMONOMIAL(m);
   td = 0;
   for ( i = 0; i < nv; i++ ) {
@@ -514,7 +514,7 @@ int divisible(Monomial dnd,Monomial dvr)
   nv = CurrentRing->nv;
   bpe = CurrentRing->bpe;
   if ( bpe == 8 ) mask = ~0;
-  else mask = ((1UL)<<(bpe*8))-1;
+  else mask = (((ULONG)1)<<(bpe*8))-1;
   for ( i = 0; i < nv; i++ ) {
     bpos = i*bpe; wpos = bpos/8; shift = 8-bpe-(bpos%8);
     ednd = (dnd->exp[wpos] >> (shift*8))&mask;
@@ -983,13 +983,18 @@ Poly itop(char *n)
 {
   Poly r;
   Monomial m;
+  Coef c;
 
-  NEWPOLY(r);
-  NEWMONOMIAL(m);
-  m->td = 0;
-  r->m = m;
-  r->c = CurrentRing->ntoc(n);
-  return r;
+  c = CurrentRing->ntoc(n);
+  if ( c.f == 0 ) return 0;
+  else {
+    NEWPOLY(r);
+    r->c = c;
+    NEWMONOMIAL(m);
+    m->td = 0;
+    r->m = m;
+    return r;
+  }
 }
 
 Poly vtop(char *v)
@@ -1011,7 +1016,7 @@ Poly vtop(char *v)
   m->td = 1;
   bpos = i*CurrentRing->bpe;
   wpos = bpos/8; shift = 8-CurrentRing->bpe-(bpos%8);
-  m->exp[wpos] = (1UL)<<(shift*8);
+  m->exp[wpos] = ((ULONG)1)<<(shift*8);
   r->c = CurrentRing->one;
   r->m = m;
   r->next = 0;
@@ -1135,7 +1140,7 @@ void print_monomial(Monomial m)
   nv = CurrentRing->nv; bpe = CurrentRing->bpe;
   v = CurrentRing->vname; rev = CurrentRing->rev;
   if ( bpe == 8 ) mask = ~0;
-  else mask = ((1UL)<<(bpe*8))-1;
+  else mask = (((ULONG)1)<<(bpe*8))-1;
   for ( i = 0; i < nv; i++ ) {
     bpos = rev ? (nv-i-1)*bpe : i*bpe; 
     wpos = bpos/8; shift = 8-bpe-(bpos%8);
@@ -1153,6 +1158,10 @@ void print_poly(Poly p)
 {
   Poly q;
 
+  if ( p == 0 ) {
+    printf("0");
+    return;
+  }
   for ( q = p; q != 0; q = q->next ) {
     printf("+("); CurrentRing->printc(q->c); printf(")");
     if ( q->m->td != 0 ) {
