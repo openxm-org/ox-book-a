@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>gcd</title>
+</head>
+<body>
+  <h1>ユークリッドの互除法によるGCD計算</h1>
+  <label>a:<input type="text" size="4" id="a"></label>
+  <label>b:<input type="text" size="4" id="b"></label>
+  <button type="button" id="run">実行</button>
+  <div id="result"></div>
+
+  <script src="gcd.js"></script>
+  <script>
+  document.getElementById('run').addEventListener('click', () => {
+    var a = document.getElementById('a');
+    var b = document.getElementById('b');
+    var result = Module.ccall('euclid', 'number', ['number', 'number'], [a.value, b.value]);
+    document.getElementById('result').innerHTML = "GCD:" + result;
+  });
+  </script>
+</body>
+</html>
