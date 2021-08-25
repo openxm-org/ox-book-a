@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>calc</title>
+</head>
+<body>
+  <h1>多項式電卓</h1>
+  <label>標数:<input type="text" size="4" id="chr"></label>
+  <label>項順序:<input type="text" size="4" id="ord"></label>
+  <label>指数バイト:<input type="text" size="4" id="bpe"></label>
+  <label>変数:<input type="text" size="8" id="vars"></label>
+  <button type="button" id="set">設定</button>
+  <div id="result"></div>
+  <label>入力:<input type="text" size="80" id="input"></label>
+  <button type="button" id="run">実行</button>
+  <div id="result2"></div>
+  <script async src="calc.js"></script>
+  <script>
+  document.getElementById('set').addEventListener('click', () => {
+    var chr = document.getElementById('chr');
+    var ord = document.getElementById('ord');
+    var bpe = document.getElementById('bpe');
+    var vars = document.getElementById('vars');
+    var vars_buf = Module._malloc(vars.value.length + 1);
+    Module.stringToUTF8(vars.value, vars_buf, vars.value.length + 1);
+    var rslt = Module.ccall('set_parameters','number',['number','number','number','number'],[vars_buf,ord.value,bpe.value,chr.value]);
+    document.getElementById('result').innerHTML = rslt;
+    Module._free(vars_buf);
+  });
+  document.getElementById('run').addEventListener('click', () => {
+    var input_text = document.getElementById('input');
+    var buffer = Module._malloc(input_text.value.length + 2);
+    Module.stringToUTF8(input_text.value + ';', buffer, input_text.value.length + 2);
+    var rslt2 =  Module.ccall('yyparse_input','string',['number'],[buffer]);
+    document.getElementById('result2').innerHTML = rslt2;
+    Module._free(buffer);
+  });
+  </script>
+</body>
+</html>
