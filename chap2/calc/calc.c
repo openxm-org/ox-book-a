@@ -2,7 +2,9 @@
 #include <time.h>
 
 Ring CurrentRing;
-FILE *Input;
+char *parse_string;
+int parse_string_index;
+
 extern Poly result;
 
 void *GC_calloc_atomic(size_t n)
@@ -429,15 +431,13 @@ void show_ring(Ring r)
   fprintf(stderr,"],ordtype=%s,max exponent=%s\n",ordtype,maxexp);
 }
 
-FILE *Input;
-
 int skipspace() {
   int c;
 
-  for ( c = getc(Input); ; )
+  for ( c = Getc(); ; )
     switch ( c ) {
       case ' ': case '\t': case '\r': case '\n':
-        c = getc(Input);
+        c = Getc();
         break;
       default:
         return c;
@@ -493,7 +493,7 @@ Node get_vars()
   char *s;
 
   p = &root;
-  while ( (c = getc(Input)) != '[' );
+  while ( (c = Getc()) != '[' );
   while ( 1 ) {
     c = skipspace();
     if ( c == ']' ) {
@@ -504,9 +504,9 @@ Node get_vars()
       for ( i = 1; ; i++ ) {
         if ( i == BUFSIZ )
           error("get_vars : variable name too long");
-        c = getc(Input);
+        c = Getc();
         if ( !isalnum(c) ) {
-          ungetc(c,Input);
+          Ungetc(c);
           buf[i] = 0;
           break;
         } else
@@ -549,37 +549,47 @@ void *gc_realloc(void *p,size_t osize,size_t nsize)
   return (void *)GC_realloc(p,nsize);
 }
 
-// ringdef file format :
-// chr ordid bpe [x y z ...]
-
-int main(int argc,char **argv)
+void init_calc(char *ring,int from_string)
 {
-  Node vars,out;
-  int chr,ordid,bpe,alg;
+  Node vars;
+  int chr,ordid,bpe;
 
   GC_init();
   mp_set_memory_functions(
     (void *(*)(size_t))GC_malloc,
     (void *(*)(void *,size_t,size_t))gc_realloc,
     (void (*)(void *,size_t))GC_free);
-  if ( argc == 1 ) {
+  if ( ring == 0 ) {
     vars = default_vars();
     chr = 1; ordid = 0; bpe = 4;
+  } else if ( from_string ) {
+    sscanf(ring,"%d %d %d",&chr,&ordid,&bpe);
+    parse_string = index(ring,'[');
+    parse_string_index = 0;
+    vars = get_vars();
+    parse_string = 0;
   } else {
-    Input = fopen(argv[1],"r"); 
+    Input = fopen(ring,"r"); 
     if ( Input == 0 ) {
-      fprintf(stderr,"ring definition file %s not found\n",argv[1]);
+      fprintf(stderr,"ring definition file %s not found\n",ring);
       exit(0);
     }
-    fscanf(Input,"%d %d %d\n",&chr,&ordid,&bpe);
+    fscanf(Input,"%d %d %d",&chr,&ordid,&bpe);
+    parse_string = 0;
     vars = get_vars();
     fclose(Input);
+    Input = 0;
   }
   CurrentRing = create_ring(vars,ordid,bpe,chr);
-  show_ring(CurrentRing);
-  Input = stdin;
-  while ( 1 ) {
-    yyparse();
-    print_poly(result); printf("\n");
-  }
+}
+
+// ringdef file format :
+// chr ordid bpe [x y z ...]
+
+Poly eval_string(char *s)
+{
+  parse_string = s;
+  parse_string_index = 0;
+  yyparse();
+  return result;
 }

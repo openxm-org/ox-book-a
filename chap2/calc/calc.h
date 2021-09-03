@@ -75,8 +75,12 @@ typedef struct ring {
 
 extern Ring CurrentRing;
 extern FILE *Input;
+extern char *parse_string;
+extern int parse_string_index;
+extern Poly result;
 
 Ring create_ring(Node vars,int type,int bpe,ULONG chr);
+void show_ring(Ring ring);
 
 #define NEWRING(a) ((a)=(Ring)GC_malloc(sizeof(struct ring)))
 
@@ -85,7 +89,11 @@ Poly itop(char *);
 void check(void);
 Node append_to_node(Node p,void *obj);
 int yyparse(),yylex(),skipspace();
+void init_calc(char *ringfile,int from_string);
+Poly eval_string(char *s);
 void error(char *);
+int Getc();
+void Ungetc(int c);
 
 Poly add_poly(Poly,Poly), sub_poly(Poly,Poly), neg_poly(Poly);
 Poly mul_poly(Poly,Poly), divc_poly(Poly,Poly), power_poly(Poly,char *);

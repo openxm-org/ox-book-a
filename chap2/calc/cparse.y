@@ -9,6 +9,7 @@
 void yyerror(char *);
 Poly result;
 Poly pvar[26];
+FILE *Input;
 %}
 
 %start start
@@ -74,6 +75,25 @@ void yyerror(char *s)
   fprintf(stderr,"parser : %s\n",s);
 }
 
+extern char *parse_string;
+extern int parse_string_index;
+
+int Getc()
+{
+  if ( parse_string != 0 ) {
+    return parse_string[parse_string_index++];
+  } else
+    return getc(Input);
+}
+
+void Ungetc(int c)
+{
+  if ( parse_string != 0 ) {
+    parse_string[--parse_string_index] = c;
+  } else
+    ungetc(c,Input);
+}
+
 int yylex()
 {
   int c,i,bufsize;
@@ -101,9 +121,9 @@ int yylex()
         bufsize *= 2;
         buf = GC_realloc(buf,bufsize);
       }
-      c = getc(Input);
+      c = Getc();
       if ( !isdigit(c) ) {
-        ungetc(c,Input);
+        Ungetc(c);
         buf[i] = 0;
         break;
       } else
@@ -116,9 +136,9 @@ int yylex()
   } else if ( islower(c) ) {
     buf[0] = c;
     for ( i = 1; ; i++ ) {
-      c = getc(Input);
+      c = Getc();
       if ( !isalnum(c) ) {
-        ungetc(c,Input);
+        Ungetc(c);
         buf[i] = 0;
         break;
       } else
