@@ -569,7 +569,7 @@ void init_calc(char *ring,int from_string)
     parse_string_index = 0;
     vars = get_vars();
     parse_string = 0;
-    ring = index(ring,'[')+1;
+    ring = index(ring,']')+1;
     sscanf(ring,"%d %d %d",&ordid,&bpe,&chr);
   } else {
     Input = fopen(ring,"r"); 
