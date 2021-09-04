@@ -499,7 +499,9 @@ Node get_vars()
     if ( c == ']' ) {
       p->next = 0;
       return root.next;
-    } else {
+    } else if ( c == ',' )
+      ;  // skip a comma
+    else {
       buf[0] = c;
       for ( i = 1; ; i++ ) {
         if ( i == BUFSIZ )
@@ -563,20 +565,21 @@ void init_calc(char *ring,int from_string)
     vars = default_vars();
     chr = 1; ordid = 0; bpe = 4;
   } else if ( from_string ) {
-    sscanf(ring,"%d %d %d",&chr,&ordid,&bpe);
-    parse_string = index(ring,'[');
+    parse_string = ring;
     parse_string_index = 0;
     vars = get_vars();
     parse_string = 0;
+    ring = index(ring,'[')+1;
+    sscanf(ring,"%d %d %d",&ordid,&bpe,&chr);
   } else {
     Input = fopen(ring,"r"); 
     if ( Input == 0 ) {
       fprintf(stderr,"ring definition file %s not found\n",ring);
       exit(0);
     }
-    fscanf(Input,"%d %d %d",&chr,&ordid,&bpe);
-    parse_string = 0;
     vars = get_vars();
+    fscanf(Input,"%d %d %d",&ordid,&bpe,&chr);
+    parse_string = 0;
     fclose(Input);
     Input = 0;
   }
