@@ -28,6 +28,7 @@ int main() {
   printf("Input a list of the form (-10<x,y<10), e.g., [[-9,0,5,9],[5,0,2,5]];\n");
   printf("[Enter] shows an example.\n> ");
   op=read_command(stdin);
+  if (op == NULL) return -1;
   /* check format */
   if (op->tag != LIST) {
     fprintf(stderr,"Error: Input a list\n"); return -1;
