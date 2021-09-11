@@ -41,6 +41,11 @@ void in_symbol() {
     Value=0;
     if (Ch=='-') {
       sign=-1; Ch=getch();
+      if (!isdigit(Ch)) {
+	fprintf(stderr,"Error: %c after - is not a part of a number\n",Ch);
+	Sy=Ch;
+	Ch=getch();
+      }
     }else sign=1;
     do {
       Value = Value*10+(Ch-'0');
