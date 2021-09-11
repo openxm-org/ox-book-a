@@ -46,6 +46,19 @@ struct list * append(struct list *lst,struct object *op) {
   }
 }
 
+struct list * concat_list(struct list *lst,struct list *lst2) {
+  struct list *top;
+  if (lst == NULL) return lst2;
+  top = lst;
+  while (lst != NULL) {
+    if (lst->right == NULL) {
+      lst->right = lst2;
+      return top;
+    }
+    lst = lst->right;
+  }
+}
+
 void print_list(struct list *lst) {
   printf("[");
   while (lst != NULL) {
