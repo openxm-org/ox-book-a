@@ -32,3 +32,4 @@ void print_object(struct object *op);
 Note.
 new_object_list((struct list *)NULL) returns empty list object.
 */
+
