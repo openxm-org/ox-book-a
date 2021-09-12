@@ -66,8 +66,9 @@ void glib_draw() {
 
 struct object *read_command(FILE *fp) {
   struct object *op;
-  fgets(Input,BSIZE,fp);
-  if (strlen(Input) < 2) strcpy(Input,"[[-9,0,5,9],[5,0,2,5]];\n"); 
+  char *s;
+  s=fgets(Input,BSIZE,fp);
+  if ((strlen(Input) < 2) || (s==NULL)) strcpy(Input,"[[-9,0,5,9],[5,0,2,5]];\n"); 
   Ch=' '; Sy=0; Value=0;
   op=expr();
   print_object(op); putchar('\n');
