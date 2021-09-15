@@ -1,4 +1,4 @@
-CFLAGS=-g -O3
+CFLAGS=-g -O3 -DUSEGC
 OBJS=calc.o ff.o z.o q.o y.tab.o main.o smain.o
 all: calc libcalc.a scalc
 $(OBJS): calc.h

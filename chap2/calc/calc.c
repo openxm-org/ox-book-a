@@ -7,6 +7,7 @@ int parse_string_index;
 
 extern Poly result;
 
+#if defined(USEGC)
 void *GC_calloc_atomic(size_t n)
 {
   void *p;
@@ -14,6 +15,12 @@ void *GC_calloc_atomic(size_t n)
   memset(p,0,n);
   return p;
 }
+
+void *gc_realloc(void *p,size_t osize,size_t nsize)
+{
+  return (void *)GC_realloc(p,nsize);
+}
+#endif
 
 void error(char *msg)
 {
@@ -148,9 +155,9 @@ Poly merge_poly(Poly p1,Poly p2)
           if ( !CurrentRing->zeroc(c) ) {
             q1->c = c; r->next = q1; r = q1; q1 = q1->next; 
           } else {
-            t = q1->next; GC_free(q1->m); GC_free(q1); q1 = t;
+            t = q1->next; FREE(q1->m); FREE(q1); q1 = t;
           }
-          t = q2->next; GC_free(q2->m); GC_free(q2); q2 = t;
+          t = q2->next; FREE(q2->m); FREE(q2); q2 = t;
           break;
         case 1:
           r->next = q1; r = q1;
@@ -332,7 +339,7 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
 
   NEWRING(r);
   r->nv = length(vars);
-  r->vname = (char **)GC_malloc(r->nv*sizeof(char *));
+  r->vname = (char **)MALLOC(r->nv*sizeof(char *));
   for ( p = vars, i = 0; p; p = p->next, i++ )
     r->vname[i] = (char *)p->body;
   r->bpe = bpe;
@@ -517,7 +524,7 @@ Node get_vars()
         } else
           buf[i] = c;
       }
-      s = (char *)GC_malloc(i+1);
+      s = (char *)MALLOC(i+1);
       strcpy(s,buf);
       APPENDNODE(p,p1,s);
     }
@@ -533,7 +540,7 @@ Node default_vars()
   char *s;
 
   for ( top = 0, i = len-1; i >= 0; i-- ) {
-    s = (char *)GC_malloc(2);
+    s = (char *)MALLOC(2);
     s[0] = xyz[i]; s[1] = 0;
     CONSNODE(top,cur,s);
   }
@@ -549,21 +556,18 @@ void print_node(Node p)
   }
 }
 
-void *gc_realloc(void *p,size_t osize,size_t nsize)
-{
-  return (void *)GC_realloc(p,nsize);
-}
-
 void init_calc(char *ring,int from_string)
 {
   Node vars;
   int chr,ordid,bpe;
 
+#if defined(USEGC)
   GC_init();
   mp_set_memory_functions(
     (void *(*)(size_t))GC_malloc,
     (void *(*)(void *,size_t,size_t))gc_realloc,
     (void (*)(void *,size_t))GC_free);
+#endif
   if ( ring == 0 ) {
     vars = default_vars();
     chr = 1; ordid = 0; bpe = 4;

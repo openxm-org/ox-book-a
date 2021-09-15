@@ -1,6 +1,8 @@
 %{
-#define malloc(x) GC_malloc(x)
-#define free(x) GC_free(x)
+#if defined(USEGC)
+#define malloc(x) MALLOC(x)
+#define free(x) FREE(x)
+#endif
 
 #include <ctype.h>
 #include <sys/types.h>
@@ -99,7 +101,7 @@ int yylex()
   int c,i,bufsize;
   char *buf,*s;;
 
-  buf = GC_malloc(BUFSIZ);
+  buf = MALLOC(BUFSIZ);
   bufsize = BUFSIZ;
 
   switch ( c = skipspace() ) {
@@ -119,7 +121,7 @@ int yylex()
     for ( i = 1; ; i++ ) {
       if ( i == bufsize ) {
         bufsize *= 2;
-        buf = GC_realloc(buf,bufsize);
+        buf = REALLOC(buf,bufsize);
       }
       c = Getc();
       if ( !isdigit(c) ) {
@@ -129,7 +131,7 @@ int yylex()
       } else
         buf[i] = c;
     }
-    s = (char *)GC_malloc(i+1);
+    s = (char *)MALLOC(i+1);
     strcpy(s,buf);
     yylval.s = s;
     return INT;
@@ -144,7 +146,7 @@ int yylex()
       } else
         buf[i] = c;
     }
-    s = GC_malloc(i+1);
+    s = MALLOC(i+1);
     strcpy(s,buf);
     yylval.s = s;
     return VAR;

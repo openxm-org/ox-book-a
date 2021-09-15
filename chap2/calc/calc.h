@@ -4,7 +4,18 @@
 #include <string.h>
 #include <ctype.h>
 #include <gmp.h>
+#if defined(USEGC)
 #include <gc.h>
+#define MALLOC(a) GC_malloc(a)
+#define MALLOC_ATOMIC(a) GC_calloc_atomic(a)
+#define REALLOC(a,b) GC_realloc((a),(b))
+#define FREE(a) GC_free(a)
+#else
+#define MALLOC(a) calloc((a),1)
+#define MALLOC_ATOMIC(a) calloc((a),1)
+#define REALLOC(a,b) realloc((a),(b))
+#define FREE(a) free(a)
+#endif
 
 typedef int64_t LONG;
 typedef uint64_t ULONG;
@@ -16,7 +27,7 @@ typedef struct node {
   struct node *next;
 } *Node;
 
-#define NEWNODE(a) ((a)=(Node)GC_malloc(sizeof(struct node)))
+#define NEWNODE(a) ((a)=(Node)MALLOC(sizeof(struct node)))
 
 // ...->prev => ...->rev->cur, prev=cur
 #define APPENDNODE(prev,cur,b) \
@@ -31,7 +42,7 @@ typedef struct monomial {
   ULONG exp[1];
 } *Monomial;
 
-#define NEWMONOMIAL(a) ((a)=(Monomial)GC_calloc_atomic(sizeof(struct monomial)+(CurrentRing->wpe-1)*sizeof(ULONG)))
+#define NEWMONOMIAL(a) ((a)=(Monomial)MALLOC_ATOMIC(sizeof(struct monomial)+(CurrentRing->wpe-1)*sizeof(ULONG)))
 
 typedef union {
   LONG f;
@@ -39,9 +50,9 @@ typedef union {
   mpq_ptr q;
 } Coef;
 
-#define NEWZ(a) ((a)=(mpz_ptr)GC_malloc(sizeof(mpz_t)))
-#define NEWQ(a) ((a)=(mpq_ptr)GC_malloc(sizeof(mpq_t)))
-#define NEWCOEF(a) ((a)=(Coef)GC_malloc(sizeof(union coef)))
+#define NEWZ(a) ((a)=(mpz_ptr)MALLOC(sizeof(mpz_t)))
+#define NEWQ(a) ((a)=(mpq_ptr)MALLOC(sizeof(mpq_t)))
+#define NEWCOEF(a) ((a)=(Coef)MALLOC(sizeof(union coef)))
 
 typedef struct poly {
   Coef c;
@@ -49,7 +60,7 @@ typedef struct poly {
   struct poly *next;
 } *Poly;
 
-#define NEWPOLY(a) ((a)=(Poly)GC_malloc(sizeof(struct poly)))
+#define NEWPOLY(a) ((a)=(Poly)MALLOC(sizeof(struct poly)))
 #define APPENDPOLY(prev,cur,coef,mono) \
 (NEWPOLY(cur),(cur)->c=(coef),(cur)->m=(mono),(prev)->next=(cur),(prev)=(cur))
 
@@ -83,7 +94,7 @@ extern Poly result;
 Ring create_ring(Node vars,int type,int bpe,ULONG chr);
 void show_ring(Ring ring);
 
-#define NEWRING(a) ((a)=(Ring)GC_malloc(sizeof(struct ring)))
+#define NEWRING(a) ((a)=(Ring)MALLOC(sizeof(struct ring)))
 
 Poly vtop(char *);
 Poly itop(char *);
