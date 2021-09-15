@@ -63,6 +63,7 @@ typedef struct ring {
  int (*mcomp)(Monomial,Monomial);
  LONG chr;
  ULONG sb; // sign bits
+ int (*zeroc)(Coef);
  Coef (*ntoc)(char *);
  void (*printc)(Coef);
  Coef (*addc)(Coef,Coef);
@@ -101,6 +102,7 @@ Poly dup_poly(Poly), mul1_poly(Poly,Poly);
 void free_poly(Poly), print_poly(Poly);
 LONG tdeg_poly(Poly p);
 
+int zero_ff(Coef a);
 Coef one_ff();
 void print_ff(Coef a);
 Coef add_ff(Coef a,Coef b), neg_ff(Coef a);
@@ -109,6 +111,7 @@ Coef mulsub_ff(Coef c,Coef a,Coef b);
 Coef inv_ff(Coef s), div_ff(Coef a,Coef b);
 Coef ntoc_ff(char *n);
 
+int zero_z(Coef a);
 Coef mpztoc(mpz_ptr t);
 Coef one_z();
 void print_z(Coef a);
@@ -117,6 +120,7 @@ Coef sub_z(Coef a,Coef b), mul_z(Coef a,Coef b);
 Coef divexact_z(Coef a,Coef b), gcd_z(Coef a,Coef b);
 Coef ntoc_z(char *n);
 
+int zero_q(Coef a);
 Coef mpqtoc(mpq_ptr t);
 Coef one_q();
 void print_q(Coef a);

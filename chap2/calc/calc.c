@@ -103,7 +103,7 @@ Poly add_poly(Poly p1,Poly p2)
       switch ( (*mcomp)(q1->m,q2->m) ) { 
         case 0:
           c = CurrentRing->addc(q1->c,q2->c);
-          if ( c.f != 0 ) {
+          if ( !CurrentRing->zeroc(c) ) {
             APPENDPOLY(r,q,c,q1->m);
           }
           q1 = q1->next; q2 = q2->next;
@@ -145,7 +145,7 @@ Poly merge_poly(Poly p1,Poly p2)
       switch ( (*mcomp)(q1->m,q2->m) ) { 
         case 0:
           c = CurrentRing->addc(q1->c,q2->c);
-          if ( c.f != 0 ) {
+          if ( !CurrentRing->zeroc(c) ) {
             q1->c = c; r->next = q1; r = q1; q1 = q1->next; 
           } else {
             t = q1->next; GC_free(q1->m); GC_free(q1); q1 = t;
@@ -286,7 +286,7 @@ Poly itop(char *n)
   Monomial m;
 
   c = CurrentRing->ntoc(n);
-  if ( c.f == 0 ) return 0;
+  if ( CurrentRing->zeroc(c) ) return 0;
   else {
     NEWPOLY(r);
     r->c = c;
@@ -371,6 +371,7 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
      r = 0; break;
   }
   if ( chr == 0 ) {
+    r->zeroc = zero_z;
     r->ntoc = ntoc_z;
     r->addc = add_z;
     r->subc = sub_z;
@@ -380,6 +381,7 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
     r->printc = print_z;
     r->one = one_z();
   } else if ( chr == 1 ) {
+    r->zeroc = zero_q;
     r->ntoc = ntoc_q;
     r->addc = add_q;
     r->subc = sub_q;
@@ -389,6 +391,7 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
     r->printc = print_q;
     r->one = one_q();
   } else {
+    r->zeroc = zero_ff;
     r->ntoc = ntoc_ff;
     r->addc = add_ff;
     r->subc = sub_ff;

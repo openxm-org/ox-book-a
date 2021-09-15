@@ -24,6 +24,11 @@ void print_q(Coef a)
     mpq_out_str(stdout,10,a.q);
 }
 
+int zero_q(Coef t)
+{
+  return t.q == 0;
+}
+
 Coef mpqtoc(mpq_ptr t)
 {
   Coef z;

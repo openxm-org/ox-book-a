@@ -12,6 +12,11 @@ void print_ff(Coef a)
   printf("%lld",a.f);
 }
 
+int zero_ff(Coef t)
+{
+  return t.f == 0;
+}
+
 Coef add_ff(Coef a,Coef b)
 {
   LONG c,mod;
