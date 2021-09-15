@@ -35,6 +35,11 @@ int bitsize_z(Coef t)
   else return mpz_sizeinbase(t.z,2);
 }
 
+int zero_z(Coef t)
+{
+  return t.z == 0;
+}
+
 Coef mpztoc(mpz_ptr t)
 {
   Coef z;

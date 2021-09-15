@@ -117,7 +117,7 @@ Poly add_poly(Poly p1,Poly p2)
       switch ( (*mcomp)(q1->m,q2->m) ) { 
         case 0:
           c = CurrentRing->addc(q1->c,q2->c);
-          if ( c.f != 0 ) {
+          if ( !CurrentRing->zeroc(c) ) {
             APPENDPOLY(r,q,c,q1->m);
           }
           q1 = q1->next; q2 = q2->next;
@@ -159,7 +159,7 @@ Poly merge_poly(Poly p1,Poly p2)
       switch ( (*mcomp)(q1->m,q2->m) ) { 
         case 0:
           c = CurrentRing->addc(q1->c,q2->c);
-          if ( c.f != 0 ) {
+          if ( !CurrentRing->zeroc(c) ) {
             q1->c = c; r->next = q1; r = q1; q1 = q1->next; 
           } else {
             t = q1->next; GC_free(q1->m); GC_free(q1); q1 = t;
@@ -986,7 +986,7 @@ Poly itop(char *n)
   Coef c;
 
   c = CurrentRing->ntoc(n);
-  if ( c.f == 0 ) return 0;
+  if ( CurrentRing->zeroc(c) ) return 0;
   else {
     NEWPOLY(r);
     r->c = c;
@@ -1061,15 +1061,15 @@ Ring create_ring(Node vars,int type,int bpe,ULONG chr)
   }
   if ( chr == 0 ) {
     r->addc = add_z; r->subc = sub_z; r->mulc = mul_z; r->divc = 0;
-    r->negc = neg_z; r->one = one_z();
+    r->negc = neg_z; r->one = one_z(); r->zeroc = zero_z;
     r->ntoc = ntoc_z; r->printc = print_z;
   } else if ( chr == 1 ) {
     r->addc = add_q; r->subc = sub_q; r->mulc = mul_q; r->divc = div_q;
-    r->negc = neg_q; r->one = one_q();
+    r->negc = neg_q; r->one = one_q(); r->zeroc = zero_q;
     r->ntoc = ntoc_q; r->printc = print_q;
   } else {
     r->addc = add_ff; r->subc = sub_ff; r->mulc = mul_ff; r->divc = div_ff;
-    r->negc = neg_ff; r->one = one_ff();
+    r->negc = neg_ff; r->one = one_ff(); r->zeroc = zero_ff;
     r->ntoc = ntoc_ff; r->printc = print_ff;
   }
   return r;      
