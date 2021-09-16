@@ -8,7 +8,7 @@ AC_ARG_WITH([gc],[  --with-gc          use GC [[yes]]],
 if test "${with_gc}" != no; then
     GCLIB="-lgc"
     AC_DEFINE([USEGC])
-    AC_SUBST([GCLIB])
 fi
+AC_SUBST([GCLIB])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
