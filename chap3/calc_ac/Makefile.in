@@ -1,12 +1,12 @@
 CC     = @CC@
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ @DEFS@
 YACC   = @YACC@
 YFLAGS = @YFLAGS@ -d
 OBJS   = main.o calc.o ff.o z.o q.o y.tab.o
 all: calc
 $(OBJS): calc.h
 calc: $(OBJS)
-	$(CC) -g -o $@ $(OBJS) -lgc -lgmp
+	$(CC) -g -o $@ $(OBJS) @GCLIB@ -lgmp
 y.tab.c: cparse.y
 	$(YACC) $(YFLAGS) cparse.y
 clean:
