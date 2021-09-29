@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>calc</title>
+</head>
+<body>
+  <h1>多項式電卓</h1>
+  <label>入力:</label><input type="text" size="80" id="input" />
+  <button type="button" id="run">実行</button>
+  <div id="result"></div>
+  <script src="calc.js"></script>
+  <script>
+  document.getElementById('run').addEventListener('click', () => {
+    var input_text = document.getElementById('input');
+    var buffer = Module._malloc(input_text.value.length + 2);
+    Module.stringToUTF8(input_text.value + ';', buffer, input_text.value.length + 2);
+    var rslt = Module.ccall('yyparse_str','string',['number'],[buffer]);
+    document.getElementById('result').innerHTML = rslt;
+    Module._free(buffer);
+  });
+  </script>
+</body>
+</html>

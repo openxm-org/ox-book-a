@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>calc</title>
+</head>
+<body>
+  <h1>多項式電卓</h1>
+  <label>変数:</label><input type="text" size="10" id="vars" value="x y z" />
+  <label>項順序:</label>
+  <select id="ord">
+    <option value="0">全次数逆辞書式</option>
+    <option value="1">全次数辞書式</option>
+    <option value="2" selected>辞書式</option>
+  </select>
+  <label>指数サイズ:</label>
+  <select id="bpe">
+    <option value="1">1 byte</option>
+    <option value="2">2 byte</option>
+    <option value="4" selected>4 byte</option>
+    <option value="8">8 byte</option>
+  </select>
+  <label>係数:</label>
+  <select id="chr">
+    <option value="0">整数環</option>
+    <option value="1" selected>有理数体</option>
+    <option value="2" >有限体</option>
+  </select>
+  <label>素数:</label><input type="text" size="5" id="prime" value="257" disabled />
+  <button type="button" id="set">設定</button>
+  <div id="ring"></div>
+  <label>入力:</label><input type="text" size="95" id="input" />
+  <button type="button" id="run">実行</button>
+  <div id="result"></div>
+  <script src="calc.js"></script>
+  <script>
+  document.getElementById('chr').addEventListener('change', () => {
+    var chr = document.getElementById('chr');
+    if(chr.value == 2) prime.disabled = false;
+    else prime.disabled = true;
+  });
+  document.getElementById('set').addEventListener('click', () => {
+    var vars = document.getElementById('vars');
+    var ord = document.getElementById('ord');
+    var bpe = document.getElementById('bpe');
+    var chr = document.getElementById('chr');
+    var prime = document.getElementById('prime');
+    var vars_buf = Module._malloc(vars.value.length + 3);
+    Module.stringToUTF8('[' + vars.value + ']', vars_buf, vars.value.length + 3);
+    if(chr.value == 2){
+      var ring = Module.ccall('set_parameters','string',['number','number','number','number'],[vars_buf,ord.value,bpe.value,prime.value]);
+    }else{
+      var ring = Module.ccall('set_parameters','string',['number','number','number','number'],[vars_buf,ord.value,bpe.value,chr.value]);
+    }
+    document.getElementById('ring').innerHTML = ring;
+    Module._free(vars_buf);
+  });
+  document.getElementById('run').addEventListener('click', () => {
+    var input_text = document.getElementById('input');
+    var buffer = Module._malloc(input_text.value.length + 2);
+    Module.stringToUTF8(input_text.value + ';', buffer, input_text.value.length + 2);
+    var rslt = Module.ccall('yyparse_str','string',['number'],[buffer]);
+    document.getElementById('result').innerHTML = rslt;
+    Module._free(buffer);
+  });
+  </script>
+</body>
+</html>
