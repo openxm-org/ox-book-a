@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <gmp.h>
 
-void main() {
+int main() {
   mpz_t a;
   mpz_t b;
   mpz_t c;
