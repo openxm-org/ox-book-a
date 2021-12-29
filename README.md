@@ -1,2 +1,4 @@
 # ox-book-a
-Sample codes for the book " 数学ソフトウエアの作り方"
+本 " 数学ソフトウエアの作り方" 掲載のプログラムや参考資料を集めたレポジトリです.
+
+[本のプログラムを試すための環境構築法](http://www.math.kobe-u.ac.jp/HOME/taka/2021/ox-book/install-for-ox-book-ja.html)
