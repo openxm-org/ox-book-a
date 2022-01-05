@@ -607,16 +607,21 @@ Poly eval_string(char *s)
 char *show_ring_str(Ring r)
 {
   char **v;
-  int n,i;
+  int n,i,len,bufsize = BUFSIZ;
   char *ordtype,*maxexp,*buf = (char *)MALLOC(BUFSIZ);
 
   switch ( r->chr ) {
-    case 0: sprintf(buf,"ring=Z["); break;
-    case 1: sprintf(buf,"ring=Q["); break;
-    default: sprintf(buf,"ring=(Z/%dZ)[",(int)r->chr); break;
+    case 0: sprintf(buf,"ring=Z["); len = 7; break;
+    case 1: sprintf(buf,"ring=Q["); len = 7; break;
+    default: sprintf(buf,"ring=(Z/%dZ)[",(int)r->chr); len = 21; break;
   }
   v = r->vname; n = r->nv;
   for ( i = 0; i < n; i++ ) {
+    len += strlen(v[i]) + 1;
+    if ( len >= bufsize ) {
+      bufsize *= 2;
+      buf = REALLOC(buf,bufsize);
+    }
     sprintf(buf,"%s%s",buf,v[i]);
     if ( i < n-1 ) sprintf(buf,"%s,",buf);
   }
@@ -631,7 +636,12 @@ char *show_ring_str(Ring r)
     case 8: maxexp = "9223372036854775807"; break;
     default: maxexp = "?"; break;
   }
-  sprintf(buf,"%s], ordtype=%s, max exponent=%s\n",buf,ordtype,maxexp);
+  len += strlen(ordtype) + strlen(maxexp) + 26;
+  if ( len >= bufsize ) {
+    bufsize *= 2;
+    buf = REALLOC(buf,bufsize);
+  }
+  sprintf(buf,"%s], ordtype=%s, max exponent=%s",buf,ordtype,maxexp);
   return buf;
 }
 
@@ -655,7 +665,7 @@ char *print_mono_str(Monomial m)
 
   nv = CurrentRing->nv; bpe = CurrentRing->bpe;
   v = CurrentRing->vname; rev = CurrentRing->rev;
-  for ( i = 0; i < nv; i++ ) vlen = vlen + strlen(v[i]);
+  for ( i = 0; i < nv; i++ ) vlen += strlen(v[i]);
   switch ( bpe ) { 
     case 1: elen = 3; break;
     case 2: elen = 5; break;
@@ -663,7 +673,7 @@ char *print_mono_str(Monomial m)
     case 8: elen = 20; break;
     default: break;
   }
-  buf = (char *)MALLOC( vlen + (2 + elen) * nv + 1 ); // *v[0]^e*v[1]^e...
+  buf = (char *)MALLOC( vlen + (2 + elen) * nv + 1 ); // *v[0]^e*...
   if ( bpe == 8 ) mask = ~0;
   else mask = (((ULONG)1)<<(bpe*8))-1;
   for ( i = 0; i < nv; i++ ) {
@@ -683,23 +693,30 @@ char *print_mono_str(Monomial m)
 char *print_poly_str(Poly p)
 {
   Poly q;
-  char *pbuf;
-  int len = 0;
-  for ( q = p; q != 0; q = q->next ) {
-    len = len + strlen(CurrentRing->printc(q->c)) + 3;
-    if ( q->m->td != 0 ) {
-      len = len + strlen(print_mono_str(q->m)) + 1;
-    }
-  }
-  pbuf = (char *)MALLOC(len + 1);
-
+  char *tmp_c,*tmp_m,*pbuf = (char *)MALLOC(BUFSIZ);
+  int len = 0,bufsize = BUFSIZ;
   if ( p == 0 ) {
-    return "0";
+    sprintf(pbuf,"0");
   }
   for ( q = p; q != 0; q = q->next ) {
-    sprintf(pbuf, "%s+(%s)",pbuf,CurrentRing->printc(q->c));
+    tmp_c = CurrentRing->printc(q->c);
     if ( q->m->td != 0 ) {
-      sprintf(pbuf, "%s*%s",pbuf,print_mono_str(q->m));
+      tmp_m = print_mono_str(q->m);
+      len += strlen(tmp_c) + strlen(tmp_m) + 4;
+      if ( len >= bufsize ) {
+        bufsize *= 2;
+        pbuf = REALLOC(pbuf,bufsize);
+      }
+      sprintf(pbuf,"%s+(%s)*%s",pbuf,tmp_c,tmp_m);
+      FREE(tmp_c); FREE(tmp_m);
+    } else {
+      len += strlen(tmp_c) + 3;
+      if ( len >= bufsize ) {
+        bufsize *= 2;
+        pbuf = REALLOC(pbuf,bufsize);
+      }
+      sprintf(pbuf,"%s+(%s)",pbuf,tmp_c);
+      FREE(tmp_c);
     }
   }
   return pbuf;

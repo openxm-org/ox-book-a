@@ -607,16 +607,21 @@ Poly eval_string(char *s)
 char *show_ring_str(Ring r)
 {
   char **v;
-  int n,i;
+  int n,i,len,bufsize = BUFSIZ;
   char *ordtype,*maxexp,*buf = (char *)MALLOC(BUFSIZ);
 
   switch ( r->chr ) {
-    case 0: sprintf(buf,"ring=Z["); break;
-    case 1: sprintf(buf,"ring=Q["); break;
-    default: sprintf(buf,"ring=(Z/%dZ)[",(int)r->chr); break;
+    case 0: sprintf(buf,"ring=Z["); len = 7; break;
+    case 1: sprintf(buf,"ring=Q["); len = 7; break;
+    default: sprintf(buf,"ring=(Z/%dZ)[",(int)r->chr); len = 21; break;
   }
   v = r->vname; n = r->nv;
   for ( i = 0; i < n; i++ ) {
+    len += strlen(v[i]) + 1;
+    if ( len >= bufsize ) {
+      bufsize *= 2;
+      buf = REALLOC(buf,bufsize);
+    }
     sprintf(buf,"%s%s",buf,v[i]);
     if ( i < n-1 ) sprintf(buf,"%s,",buf);
   }
@@ -631,7 +636,12 @@ char *show_ring_str(Ring r)
     case 8: maxexp = "9223372036854775807"; break;
     default: maxexp = "?"; break;
   }
-  sprintf(buf,"%s], ordtype=%s, max exponent=%s\n",buf,ordtype,maxexp);
+  len += strlen(ordtype) + strlen(maxexp) + 26;
+  if ( len >= bufsize ) {
+    bufsize *= 2;
+    buf = REALLOC(buf,bufsize);
+  }
+  sprintf(buf,"%s], ordtype=%s, max exponent=%s",buf,ordtype,maxexp);
   return buf;
 }
 
@@ -655,7 +665,7 @@ char *print_mono_str(Monomial m)
 
   nv = CurrentRing->nv; bpe = CurrentRing->bpe;
   v = CurrentRing->vname; rev = CurrentRing->rev;
-  for ( i = 0; i < nv; i++ ) vlen = vlen + strlen(v[i]);
+  for ( i = 0; i < nv; i++ ) vlen += strlen(v[i]);
   switch ( bpe ) { 
     case 1: elen = 3; break;
     case 2: elen = 5; break;
@@ -663,7 +673,7 @@ char *print_mono_str(Monomial m)
     case 8: elen = 20; break;
     default: break;
   }
-  buf = (char *)MALLOC( vlen + (3 + elen) * nv + 1 ); // v[0]^{e}v[1]^{e}...//変更
+  buf = (char *)MALLOC( vlen + (3 + elen) * nv + 1 ); //*v[0]^eからv[0]^{e}への変更のため
   if ( bpe == 8 ) mask = ~0;
   else mask = (((ULONG)1)<<(bpe*8))-1;
   for ( i = 0; i < nv; i++ ) {
@@ -680,14 +690,16 @@ char *print_mono_str(Monomial m)
   return buf;
 }
 
-char *slash2frac(char *str){
-  char *rslt = (char *)MALLOC(strlen(str)+10);
+char *slash2frac(char *str)
+{
+  char *rslt;
   if ( strchr(str,'/') != NULL ) {
+    rslt = (char *)MALLOC(strlen(str)+10);
     strtok(str,"/");
     sprintf(rslt,"\\frac{%s}{%s}",str,strtok(NULL,"/"));
+    FREE(str);
     return rslt;
   } else {
-    FREE(rslt);
     return str;
   }
 }
@@ -695,58 +707,62 @@ char *slash2frac(char *str){
 char *print_poly_str(Poly p)
 {
   Poly q;
-  char *pbuf, *coef; //coefを追加
-  int len = 0, first = 1; //firstを追加
-  for ( q = p; q != 0; q = q->next ) {
-    len = len + strlen(CurrentRing->printc(q->c)) + 10; //\frac{}{}の追加による変更
-    if ( q->m->td != 0 ) {
-      len = len + strlen(print_mono_str(q->m)); //*を除いた分の変更
-    }
-  }
-  pbuf = (char *)MALLOC(len + 1);
-
+  char *tmp_c,*tmp_m,*pbuf = (char *)MALLOC(BUFSIZ);
+  int len = 0,bufsize = BUFSIZ,first = 1; //firstを追加
   if ( p == 0 ) {
-    return "0";
+    sprintf(pbuf,"0");
   }
   for ( q = p; q != 0; q = q->next ) {
-    coef = slash2frac(CurrentRing->printc(q->c));
-    if ( q->m->td == 0 ) {
-      if ( first ){
-        sprintf(pbuf, "%s",coef);
+    tmp_c = slash2frac(CurrentRing->printc(q->c));
+    if ( q->m->td != 0 ) { /* 次数1以上の処理 */
+      tmp_m = print_mono_str(q->m);
+      len += strlen(tmp_c) + strlen(tmp_m) + 1;
+      if ( len >= bufsize ) {
+        bufsize *= 2;
+        pbuf = REALLOC(pbuf,bufsize);
+      }
+      if ( strcmp(tmp_c,"1") == 0 ) { /* 係数が1の場合 */
+        if ( first ) {
+          sprintf(pbuf,"%s",tmp_m);
+          first = 0;
+        } else {
+          sprintf(pbuf,"%s+%s",pbuf,tmp_m);
+        }
+      } else if ( strcmp(tmp_c,"-1") == 0 ) { /* 係数が-1の場合 */
+        if ( first ) {
+          sprintf(pbuf,"-%s",tmp_m);
+          first = 0;
+        } else {
+          sprintf(pbuf,"%s-%s",pbuf,tmp_m);
+        }
+      } else { /* 係数が1,-1以外の場合 */
+        if ( first ) {
+          sprintf(pbuf,"%s",tmp_c);
+          first = 0;
+        } else if ( tmp_c[0] != '-' ) {
+          sprintf(pbuf,"%s+%s",pbuf,tmp_c);
+        } else {
+          sprintf(pbuf,"%s%s",pbuf,tmp_c);
+        }
+        sprintf(pbuf,"%s%s",pbuf,tmp_m);
+      }
+      FREE(tmp_c); FREE(tmp_m);
+    } else { /* 定数の処理 */
+      len += strlen(tmp_c) + 1;
+      if ( len >= bufsize ) {
+        bufsize *= 2;
+        pbuf = REALLOC(pbuf,bufsize);
+      }
+      if ( first ) {
+        sprintf(pbuf,"%s",tmp_c);
         first = 0;
-      }else if( coef[0] != '-' ) {
-        sprintf(pbuf, "%s+%s",pbuf,coef);
-      }else{
-        sprintf(pbuf, "%s%s",pbuf,coef);
+      } else if ( tmp_c[0] != '-' ) {
+        sprintf(pbuf,"%s+%s",pbuf,tmp_c);
+      } else {
+        sprintf(pbuf,"%s%s",pbuf,tmp_c);
       }
-    }else{
-      if ( strcmp(coef,"1") == 0 ) {
-        if ( first ){
-          sprintf(pbuf, "%s",print_mono_str(q->m));
-          first = 0;
-        }else{
-          sprintf(pbuf, "%s+%s",pbuf,print_mono_str(q->m));
-        }
-      }else if ( strcmp(coef,"-1") == 0 ) {
-        if ( first ){
-          sprintf(pbuf, "-%s",print_mono_str(q->m));
-          first = 0;
-        }else{
-          sprintf(pbuf, "%s-%s",pbuf,print_mono_str(q->m));
-        }
-      }else{
-        if ( first ){
-          sprintf(pbuf, "%s",coef);
-          first = 0;
-        }else if( coef[0] != '-' ) {
-          sprintf(pbuf, "%s+%s",pbuf,coef);
-        }else{
-          sprintf(pbuf, "%s%s",pbuf,coef);
-        }
-        sprintf(pbuf, "%s%s",pbuf,print_mono_str(q->m));
-      }
+      FREE(tmp_c);
     }
-    FREE(coef);
   }
   return pbuf;
 }
@@ -760,4 +776,3 @@ int main(int argc,char **argv)
 {
   set_parameters("[x y z]", 2, 4, 1);
 }
-

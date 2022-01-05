@@ -48,20 +48,20 @@
     var vars_buf = Module._malloc(vars.value.length + 3);
     Module.stringToUTF8('[' + vars.value + ']', vars_buf, vars.value.length + 3);
     if(chr.value == 2){
-      var ring = Module.ccall('set_parameters','string',['number','number','number','number'],[vars_buf,ord.value,bpe.value,prime.value]);
+      var ring_info = Module.ccall('set_parameters','number',['number','number','number','number'],[vars_buf,ord.value,bpe.value,prime.value]);
     }else{
-      var ring = Module.ccall('set_parameters','string',['number','number','number','number'],[vars_buf,ord.value,bpe.value,chr.value]);
+      var ring_info = Module.ccall('set_parameters','number',['number','number','number','number'],[vars_buf,ord.value,bpe.value,chr.value]);
     }
-    document.getElementById('ring').innerHTML = ring;
-    Module._free(vars_buf);
+    document.getElementById('ring').innerHTML = Module.UTF8ToString(ring_info);
+    Module._free(ring_info); Module._free(vars_buf);
   });
   document.getElementById('run').addEventListener('click', () => {
     var input_text = document.getElementById('input');
     var buffer = Module._malloc(input_text.value.length + 2);
     Module.stringToUTF8(input_text.value + ';', buffer, input_text.value.length + 2);
-    var rslt = Module.ccall('yyparse_str','string',['number'],[buffer]);
-    document.getElementById('result').innerHTML = rslt;
-    Module._free(buffer);
+    var ptr = Module.ccall('yyparse_str','number',['number'],[buffer]);
+    document.getElementById('result').innerHTML = Module.UTF8ToString(ptr);
+    Module._free(ptr); Module._free(buffer);
   });
   </script>
 </body>

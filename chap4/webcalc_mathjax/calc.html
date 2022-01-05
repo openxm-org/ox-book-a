@@ -15,9 +15,9 @@
     var input_text = document.getElementById('input');
     var buffer = Module._malloc(input_text.value.length + 2);
     Module.stringToUTF8(input_text.value + ';', buffer, input_text.value.length + 2);
-    var rslt = Module.ccall('yyparse_str','string',['number'],[buffer]);
-    document.getElementById('result').innerHTML = rslt;
-    Module._free(buffer);
+    var ptr = Module.ccall('yyparse_str','number',['number'],[buffer]);
+    document.getElementById('result').innerHTML = Module.UTF8ToString(ptr);
+    Module._free(ptr); Module._free(buffer);
   });
   </script>
 </body>
