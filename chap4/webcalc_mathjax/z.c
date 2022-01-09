@@ -22,7 +22,7 @@ char *print_z(Coef a)
   cbuf = (char *)MALLOC(mpz_sizeinbase(a.z,10) + 2);
   if ( a.z == 0 ){
     sprintf(cbuf,"0");
-  }else{
+  } else {
     mpz_get_str(cbuf,10,a.z);
   }
   return cbuf;

@@ -23,7 +23,7 @@ char *print_q(Coef a)
  3);
   if ( a.q == 0 ){
     sprintf(cbuf,"0");
-  }else{
+  } else {
     mpq_get_str(cbuf,10,a.q);
   }
   return cbuf;

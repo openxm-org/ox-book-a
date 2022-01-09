@@ -622,8 +622,8 @@ char *show_ring_str(Ring r)
       bufsize *= 2;
       buf = REALLOC(buf,bufsize);
     }
-    sprintf(buf,"%s%s",buf,v[i]);
-    if ( i < n-1 ) sprintf(buf,"%s,",buf);
+    strcat(buf,v[i]);
+    if ( i < n-1 ) strcat(buf,",");
   }
   if ( r->graded )
     ordtype = r->rev?"grevlex":"glex";
@@ -641,7 +641,8 @@ char *show_ring_str(Ring r)
     bufsize *= 2;
     buf = REALLOC(buf,bufsize);
   }
-  sprintf(buf,"%s], ordtype=%s, max exponent=%s",buf,ordtype,maxexp);
+  strcat(buf,"], ordtype="); strcat(buf,ordtype);
+  strcat(buf,", max exponent="); strcat(buf,maxexp);
   return buf;
 }
 
@@ -661,7 +662,7 @@ char *print_mono_str(Monomial m)
   ULONG mask,e;
   int nv,bpe,rev,i,shift,bpos,wpos,vlen=0,elen=0; //firstを除去
   char **v;
-  char *buf;
+  char *buf,*tmp;
 
   nv = CurrentRing->nv; bpe = CurrentRing->bpe;
   v = CurrentRing->vname; rev = CurrentRing->rev;
@@ -683,8 +684,13 @@ char *print_mono_str(Monomial m)
     if ( e != 0 ) {
 //    if ( first ) first = 0; //削除
 //    else  strcat(buf, "*"); //削除
-      sprintf(buf,"%s%s",buf,v[i]);
-      if ( e > 1 ) sprintf(buf,"%s^{%"PRIu64"}",buf,e); //変更
+      strcat(buf,v[i]);
+      if ( e > 1 ) {
+        tmp = (char *)MALLOC( elen + 2 );
+        sprintf(tmp,"^{%"PRIu64"}",e); //変更
+        strcat(buf,tmp);
+        FREE(tmp);
+      }
     }
   }
   return buf;
@@ -726,25 +732,25 @@ char *print_poly_str(Poly p)
           sprintf(pbuf,"%s",tmp_m);
           first = 0;
         } else {
-          sprintf(pbuf,"%s+%s",pbuf,tmp_m);
+          strcat(pbuf,"+"); strcat(pbuf,tmp_m);
         }
       } else if ( strcmp(tmp_c,"-1") == 0 ) { /* 係数が-1の場合 */
         if ( first ) {
           sprintf(pbuf,"-%s",tmp_m);
           first = 0;
         } else {
-          sprintf(pbuf,"%s-%s",pbuf,tmp_m);
+          strcat(pbuf,"-"); strcat(pbuf,tmp_m);
         }
       } else { /* 係数が1,-1以外の場合 */
         if ( first ) {
           sprintf(pbuf,"%s",tmp_c);
           first = 0;
         } else if ( tmp_c[0] != '-' ) {
-          sprintf(pbuf,"%s+%s",pbuf,tmp_c);
+          strcat(pbuf,"+"); strcat(pbuf,tmp_c);
         } else {
-          sprintf(pbuf,"%s%s",pbuf,tmp_c);
+          strcat(pbuf,tmp_c);
         }
-        sprintf(pbuf,"%s%s",pbuf,tmp_m);
+        strcat(pbuf,tmp_m);
       }
       FREE(tmp_c); FREE(tmp_m);
     } else { /* 定数の処理 */
@@ -757,9 +763,9 @@ char *print_poly_str(Poly p)
         sprintf(pbuf,"%s",tmp_c);
         first = 0;
       } else if ( tmp_c[0] != '-' ) {
-        sprintf(pbuf,"%s+%s",pbuf,tmp_c);
+        strcat(pbuf,"+"); strcat(pbuf,tmp_c);
       } else {
-        sprintf(pbuf,"%s%s",pbuf,tmp_c);
+        strcat(pbuf,tmp_c);
       }
       FREE(tmp_c);
     }
