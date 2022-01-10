@@ -622,8 +622,8 @@ char *show_ring_str(Ring r)
       bufsize *= 2;
       buf = REALLOC(buf,bufsize);
     }
-    sprintf(buf,"%s%s",buf,v[i]);
-    if ( i < n-1 ) sprintf(buf,"%s,",buf);
+    strcat(buf,v[i]);
+    if ( i < n - 1 ) strcat(buf,",");
   }
   if ( r->graded )
     ordtype = r->rev?"grevlex":"glex";
@@ -641,7 +641,8 @@ char *show_ring_str(Ring r)
     bufsize *= 2;
     buf = REALLOC(buf,bufsize);
   }
-  sprintf(buf,"%s], ordtype=%s, max exponent=%s",buf,ordtype,maxexp);
+  strcat(buf,"], ordtype="); strcat(buf,ordtype);
+  strcat(buf,", max exponent="); strcat(buf,maxexp);
   return buf;
 }
 
@@ -661,7 +662,7 @@ char *print_mono_str(Monomial m)
   ULONG mask,e;
   int nv,bpe,rev,i,shift,bpos,wpos,first=1,vlen=0,elen=0;
   char **v;
-  char *buf;
+  char *buf,*tmp;
 
   nv = CurrentRing->nv; bpe = CurrentRing->bpe;
   v = CurrentRing->vname; rev = CurrentRing->rev;
@@ -683,8 +684,13 @@ char *print_mono_str(Monomial m)
     if ( e != 0 ) {
       if ( first ) first = 0;
       else  strcat(buf, "*");
-      sprintf(buf,"%s%s",buf,v[i]);
-      if ( e > 1 ) sprintf(buf,"%s^%"PRIu64,buf,e);
+      strcat(buf,v[i]);
+      if ( e > 1 ) {
+        tmp = (char *)MALLOC( elen + 2 );
+        sprintf(tmp,"^%"PRIu64,e);
+        strcat(buf,tmp);
+        FREE(tmp);
+      }
     }
   }
   return buf;
@@ -707,7 +713,8 @@ char *print_poly_str(Poly p)
         bufsize *= 2;
         pbuf = REALLOC(pbuf,bufsize);
       }
-      sprintf(pbuf,"%s+(%s)*%s",pbuf,tmp_c,tmp_m);
+      strcat(pbuf,"+("); strcat(pbuf,tmp_c);
+      strcat(pbuf,")*"); strcat(pbuf,tmp_m);
       FREE(tmp_c); FREE(tmp_m);
     } else {
       len += strlen(tmp_c) + 3;
@@ -715,7 +722,7 @@ char *print_poly_str(Poly p)
         bufsize *= 2;
         pbuf = REALLOC(pbuf,bufsize);
       }
-      sprintf(pbuf,"%s+(%s)",pbuf,tmp_c);
+      strcat(pbuf,"+("); strcat(pbuf,tmp_c); strcat(pbuf,")");
       FREE(tmp_c);
     }
   }

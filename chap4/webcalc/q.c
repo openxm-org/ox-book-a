@@ -19,11 +19,10 @@ void print_mpq(mpq_ptr a)
 char *print_q(Coef a)
 {
   char *cbuf;
-  cbuf = (char *)MALLOC(mpz_sizeinbase(mpq_numref(a.q), 10) + mpz_sizeinbase(mpq_denref(a.q), 10) +\
- 3);
+  cbuf = (char *)MALLOC(mpz_sizeinbase(mpq_numref(a.q), 10) + mpz_sizeinbase(mpq_denref(a.q), 10) + 3);
   if ( a.q == 0 ){
     sprintf(cbuf,"0");
-  }else{
+  } else {
     mpq_get_str(cbuf,10,a.q);
   }
   return cbuf;
