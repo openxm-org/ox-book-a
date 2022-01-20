@@ -1,5 +1,4 @@
-/* 2021.06.26 under ox-book/Prog
-   glib4.c
+/* glib4.c
    2019.12.02
 */
 /* gcc -DTEST -I/opt/X11/include -L/opt/X11/lib -lX11 glib4.c */
@@ -14,6 +13,7 @@
 #include <X11/Xlocale.h>
 
 #define DEFAULT_FONT_NAME       "-*-*-*-R-Normal--14-130-75-75-*-*"
+#define DEFAULT_FONT_NAME2       "*fixed*"
 #define F_SIZE                  14
 #define COL                     30
 #define ROW                     10
@@ -380,6 +380,15 @@ void gopen() {
 
   Glib_fs = XCreateFontSet(Glib_d, DEFAULT_FONT_NAME, &missing_list,
                            &missing_count, &def_string);
+  if (Glib_fs == NULL) {
+    fprintf(stderr,"Trying other fonts...\n");
+    Glib_fs = XCreateFontSet(Glib_d, DEFAULT_FONT_NAME2, &missing_list,
+			     &missing_count, &def_string);
+    if (Glib_fs == NULL) {
+      fprintf(stderr,"Error: execute xlsfonts and set a relevant font name to DEFAULT_FONT_NAME in glib4.c\n");
+      exit(-1);
+    }
+  }
   Glib_fs_ext = XExtentsOfFontSet(Glib_fs);
   Glib_dec = Glib_fs_ext->max_logical_extent.height-(-Glib_fs_ext->max_logical_extent.y);
 
@@ -515,17 +524,6 @@ void glib_putpixel(double x0,double y0) {
   p0 = (int) P(x0);
   q0 = (int) Q(y0);
   setpixel(p0,q0);  
-}
-
-void glib_set_point(double x, double y) {
-  double xoffset;
-  double yoffset;
-  xoffset = (Glib_xmax-Glib_xmin)/50.0;
-  yoffset = (Glib_ymax-Glib_ymin)/50.0;
-  glib_line(x-xoffset,y-yoffset,x+xoffset,y-yoffset);
-  glib_line(x+xoffset,y-yoffset,x+xoffset,y+yoffset);
-  glib_line(x+xoffset,y+yoffset,x-xoffset,y+yoffset);
-  glib_line(x-xoffset,y+yoffset,x-xoffset,y-yoffset);
 }
 
 void glib_flush() {

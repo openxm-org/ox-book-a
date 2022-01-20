@@ -24,7 +24,7 @@ double bisection(double left,double right) {
    }
 }
 
-void main() {
+int main() {
   int i;
   double left=3.14;
   double right=3.14+3.14/2.0;

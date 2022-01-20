@@ -17,7 +17,7 @@ void print_bnum(int u[]) {
   int i;
   for (i=u[0]; i>0; i--) printf("%01d",u[i]);
 }
-void main() {
+int main() {
   int a[10]={4,8,9,9,9};
   int b[10]={6,2,0,0,0,9,9};
   int c[10];
