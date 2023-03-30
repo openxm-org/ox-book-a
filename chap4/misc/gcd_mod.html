@@ -14,11 +14,7 @@
   <script src="gcd_mod.js"></script>
   <script>
   document.getElementById('run').addEventListener('click', () => {
-  fetch("gcd_mod.wasm")
-    .then(res => res.arrayBuffer())
-    .then(buf => new Uint8Array(buf))
-    .then(binary => Module())
-    .then(mod => {
+    Module().then(mod => {
       var a = document.getElementById('a');
       var b = document.getElementById('b');
       var result = mod.ccall('euclid', 'number', ['number', 'number'], [a.value, b.value]);
