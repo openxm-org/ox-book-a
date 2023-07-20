@@ -577,6 +577,17 @@ void glib_cgif_pen_up() {
   /* do nothing */
 }
 
+void glib_set_point(double x0,double y0) {
+  double xstep,ystep;
+  //glib_putpixel(x0,y0);
+  xstep=(Glib_xmax-Glib_xmin)/100.0;
+  ystep=(Glib_ymax-Glib_ymin)/100.0;
+  glib_line(x0,y0,x0+xstep,y0);
+  glib_line(x0+xstep,y0,x0+xstep,y0+ystep);
+  glib_line(x0+xstep,y0+ystep,x0,y0+ystep);
+  glib_line(x0,y0+ystep,x0,y0);
+}
+
 
 #ifdef TEST1
 int main() {
@@ -593,6 +604,9 @@ void glib_draw() {
   }
   glib_color("black",0);
   glib_text(0.1,0.1,"Hello");
+  for (y=0.0; y<1.0; y += 0.001) {
+	glib_set_point(y,1-y);
+  }
   glib_flush();
 }
 #endif
