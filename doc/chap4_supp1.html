@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>第4章の補足1</title>
+</head>
+<body>
+<h2>Webサーバを介さずに（.jsファイルを読み込む）HTMLファイルをローカルで実行する方法</h2>
+<p><b>原因</b>：.jsファイルを読み込むHTMLファイルをローカルで実行できないのは、Webブラウザのセキュリティ設定が原因です。
+デフォルトでは、どのWebブラウザもHTMLファイルからローカルの.jsファイルを読み込むのを制限しています。</p>
+
+<p><b>対策</b>：Webブラウザのセキュリティ設定を変更すればこの制限は回避可能です。
+ただし、危険性を十分理解した上で設定して下さい。<br>
+以下は、Google Chrome の場合です。
+<ol>
+<li>プログラムメニューから Google Chrome を探して右クリック→More→Open file location</li>
+<li>Google Chrome のショートカットをデスクトップにコピー</li>
+<li>コピーしたショートカットを右クリック→プロパティを開く</li>
+<li>リンク先に入力されているパスの後に <b>--allow-file-access-from-file</b> を入力し、OKをクリック</li>
+<li>次に Chrome を全て閉じる。※タスクマネージャやProcess Explorerなどで完全に落ちていることを確認</li>
+<li>Chrome が閉じたことが確認できたら、変更したショートカットで Chrome を起動</li>
+<li>Chrome のアドレスバーに chrome://version と入力し、オプションが適用されているか確認</li>
+</ol>
+
+以上で、.jsファイルを読みこむHTMLファイルを Chrome にドラッグ＆ドロップすることで実行できるようになります。
+</p>
+
+</body>
+</html>
